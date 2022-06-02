@@ -117,6 +117,10 @@ class CPUCommunicator(Communicator):
         )
         self._init_cpucoll = library.LEGATE_CORE_INIT_CPUCOLL_TASK_ID
         self._finalize_cpucoll = library.LEGATE_CORE_FINALIZE_CPUCOLL_TASK_ID
+        self._finalize_cpucoll_id = (
+            library.LEGATE_CORE_FINALIZE_CPUCOLL_ID_TASK_ID
+        )
+        self._cpucoll_id = 0
         self._tag = library.LEGATE_CPU_VARIANT
         self._needs_barrier = False
 
@@ -131,11 +135,11 @@ class CPUCommunicator(Communicator):
             tag=self._tag,
             side_effect=True,
         )
-        cpucoll_id = task.execute_single()
+        self._cpucoll_id = task.execute_single()
         task = Task(self._context, self._init_cpucoll_mapping, tag=self._tag)
         mapping_table_fm = task.execute(Rect([volume]))
         task = Task(self._context, self._init_cpucoll, tag=self._tag)
-        task.add_future(cpucoll_id)
+        task.add_future(self._cpucoll_id)
         for i in range(volume):
             f = mapping_table_fm.get_future(Point([i]))
             task.add_future(f)
@@ -146,4 +150,13 @@ class CPUCommunicator(Communicator):
     def _finalize(self, volume, handle):
         task = Task(self._context, self._finalize_cpucoll, tag=self._tag)
         task.add_future_map(handle)
-        task.execute(Rect([volume]))
+        f = task.execute(Rect([volume]))
+        f.wait()
+        task = Task(
+            self._context,
+            self._finalize_cpucoll_id,
+            tag=self._tag,
+            side_effect=True,
+        )
+        task.add_future(self._cpucoll_id)
+        task.execute_single()

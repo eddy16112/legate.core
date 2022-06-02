@@ -19,8 +19,10 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 #include <atomic>
 #include <cstdlib>
+#include <mutex>
 
 #ifndef LEGATE_USE_GASNET
 #include <stdint.h>
@@ -46,6 +48,13 @@ enum CollTag : int {
   MAX_TAG       = 10,
 };
 
+struct CommPool {
+  // available: true
+  std::vector<bool> status;
+  pid_t pid = 0;
+  std::mutex lock;
+};
+
 static std::vector<MPI_Comm> mpi_comms;
 #else  // undef LEGATE_USE_GASNET
 static std::vector<ThreadComm> thread_comms;
@@ -57,6 +66,8 @@ static bool coll_inited = false;
 
 // can be override by set the env LEGATE_MAX_COMMS
 static int MAX_NB_COMMS = 100;
+
+static CommPool comm_pool;
 
 // functions start here
 int collCommCreate(CollComm global_comm,
@@ -216,6 +227,7 @@ int collInit(int argc, char* argv[])
   const char* nb_comms = getenv("LEGATE_MAX_COMMS");
   if (nb_comms != nullptr) { MAX_NB_COMMS = atoi(nb_comms); }
   assert(MAX_NB_COMMS > 0);
+  comm_pool.status.resize(MAX_NB_COMMS, true);
 #ifdef LEGATE_USE_GASNET
   int provided, init_flag = 0;
   CHECK_MPI(MPI_Initialized(&init_flag));
@@ -244,6 +256,7 @@ int collFinalize(void)
 {
   assert(coll_inited == true);
   coll_inited = false;
+  comm_pool.status.clear();
 #ifdef LEGATE_USE_GASNET
   for (int i = 0; i < MAX_NB_COMMS; i++) { CHECK_MPI(MPI_Comm_free(&mpi_comms[i])); }
   mpi_comms.clear();
@@ -257,9 +270,27 @@ int collFinalize(void)
 
 int collGetUniqueId(int* id)
 {
-  *id = current_unique_id;
-  current_unique_id++;
-  assert(current_unique_id <= MAX_NB_COMMS);
+  // *id = current_unique_id;
+  // current_unique_id++;
+  // assert(current_unique_id <= MAX_NB_COMMS);
+  // comm_pool.lock.lock();
+  comm_pool.pid = getpid();
+  for (int i = 0; i < MAX_NB_COMMS; i++) {
+    if (comm_pool.status[i] == true) {
+      comm_pool.status[i] = false;
+      *id                 = i;
+      return CollSuccess;
+    }
+  }
+  assert(0);
+
+  return CollError;
+}
+
+int collReleaseUniqueId(int id)
+{
+  assert(comm_pool.pid == getpid());
+  comm_pool.status[id] = true;
   return CollSuccess;
 }
 

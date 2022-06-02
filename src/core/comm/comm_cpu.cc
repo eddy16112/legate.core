@@ -99,6 +99,18 @@ static void finalize_cpucoll(const Legion::Task* task,
   comm = NULL;
 }
 
+static void finalize_cpucoll_id(const Legion::Task* task,
+                                const std::vector<Legion::PhysicalRegion>& regions,
+                                Legion::Context context,
+                                Legion::Runtime* runtime)
+{
+  Core::show_progress(task, context, runtime, task->get_task_name());
+
+  const int unique_id = task->futures[0].get_result<int>();
+  printf("release uid %d\n", unique_id);
+  coll::collReleaseUniqueId(unique_id);
+}
+
 void register_tasks(Legion::Machine machine,
                     Legion::Runtime* runtime,
                     const LibraryContext& context)
@@ -131,6 +143,14 @@ void register_tasks(Legion::Machine machine,
   runtime->attach_name(
     finalize_cpucoll_task_id, finalize_cpucoll_task_name, false /*mutable*/, true /*local only*/);
 
+  const TaskID finalize_cpucoll_id_task_id =
+    context.get_task_id(LEGATE_CORE_FINALIZE_CPUCOLL_ID_TASK_ID);
+  const char* finalize_cpucoll_id_task_name = "core::comm::cpu::finalize_id";
+  runtime->attach_name(finalize_cpucoll_id_task_id,
+                       finalize_cpucoll_id_task_name,
+                       false /*mutable*/,
+                       true /*local only*/);
+
   auto make_registrar = [&](auto task_id, auto* task_name, auto proc_kind) {
     TaskVariantRegistrar registrar(task_id, task_name);
     registrar.add_constraint(ProcessorConstraint(proc_kind));
@@ -159,6 +179,11 @@ void register_tasks(Legion::Machine machine,
     auto registrar =
       make_registrar(finalize_cpucoll_task_id, finalize_cpucoll_task_name, Processor::LOC_PROC);
     runtime->register_task_variant<finalize_cpucoll>(registrar, LEGATE_CPU_VARIANT);
+  }
+  {
+    auto registrar = make_registrar(
+      finalize_cpucoll_id_task_id, finalize_cpucoll_id_task_name, Processor::LOC_PROC);
+    runtime->register_task_variant<finalize_cpucoll_id>(registrar, LEGATE_CPU_VARIANT);
   }
 }
 
