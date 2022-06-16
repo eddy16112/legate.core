@@ -50,9 +50,9 @@ enum CollTag : int {
 
 static int mpi_tag_ub = 0;
 
-static std::vector<MPI_Comm> mpi_comms;
+static std::vector<MPI_Comm> mpi_comms(0);
 #else  // undef LEGATE_USE_GASNET
-static std::vector<ThreadComm> thread_comms;
+static std::vector<ThreadComm> thread_comms(0);
 #endif
 
 static int current_unique_id = 0;
