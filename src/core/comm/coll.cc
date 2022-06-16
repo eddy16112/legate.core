@@ -243,11 +243,13 @@ int collAllgather(
 // called from main thread
 int collInit(int argc, char* argv[])
 {
+  printf("done with init\n");
   current_unique_id    = 0;
   const char* nb_comms = getenv("LEGATE_MAX_CPU_COMMS");
   if (nb_comms != nullptr) { MAX_NB_COMMS = atoi(nb_comms); }
   assert(MAX_NB_COMMS > 0);
 #ifdef LEGATE_USE_GASNET
+#if 0
   int provided, init_flag = 0;
   CHECK_MPI(MPI_Initialized(&init_flag));
   if (!init_flag) {
@@ -273,6 +275,7 @@ int collInit(int argc, char* argv[])
   // create mpi comms
   mpi_comms.resize(MAX_NB_COMMS, MPI_COMM_NULL);
   for (int i = 0; i < MAX_NB_COMMS; i++) { CHECK_MPI(MPI_Comm_dup(MPI_COMM_WORLD, &mpi_comms[i])); }
+#endif
 #else
   thread_comms.resize(MAX_NB_COMMS);
   for (int i = 0; i < MAX_NB_COMMS; i++) {
@@ -287,9 +290,11 @@ int collInit(int argc, char* argv[])
 
 int collFinalize(void)
 {
+  printf("done with finalize\n");
   assert(coll_inited == true);
   coll_inited = false;
 #ifdef LEGATE_USE_GASNET
+#if 0
   for (int i = 0; i < MAX_NB_COMMS; i++) { CHECK_MPI(MPI_Comm_free(&mpi_comms[i])); }
   mpi_comms.clear();
   int fina_flag = 0;
@@ -298,6 +303,7 @@ int collFinalize(void)
     log_coll.fatal("MPI should not have been finalized");
     LEGATE_ABORT;
   }
+#endif
   return CollSuccess;
 #else
   for (int i = 0; i < MAX_NB_COMMS; i++) { assert(thread_comms[i].ready_flag == false); }
