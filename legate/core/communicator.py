@@ -133,7 +133,7 @@ class CPUCommunicator(Communicator):
             self._tag = library.LEGATE_OMP_VARIANT
         else:
             self._tag = library.LEGATE_CPU_VARIANT
-        self._needs_barrier = False
+        self._needs_barrier = True
 
     def destroy(self) -> None:
         if len(self._handles) > 0:
@@ -155,6 +155,7 @@ class CPUCommunicator(Communicator):
         return self._needs_barrier
 
     def _initialize(self, volume: int) -> FutureMap:
+        print("vol:", volume)
         from .launcher import TaskLauncher as Task
 
         cpucoll_uid = self._runtime.core_library.legate_cpucoll_initcomm()

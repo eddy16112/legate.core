@@ -67,16 +67,16 @@ int collAlltoallv(const void* sendbuf,
     log_coll.error("Do not support inplace Alltoallv");
     LEGATE_ABORT;
   }
-  log_coll.debug(
-    "Alltoallv: global_rank %d, mpi_rank %d, unique_id %d, comm_size %d, "
-    "mpi_comm_size %d %d, nb_threads %d",
-    global_comm->global_rank,
-    global_comm->mpi_rank,
-    global_comm->unique_id,
-    global_comm->global_comm_size,
-    global_comm->mpi_comm_size,
-    global_comm->mpi_comm_size_actual,
-    global_comm->nb_threads);
+  // log_coll.debug(
+  //   "Alltoallv: global_rank %d, mpi_rank %d, unique_id %d, comm_size %d, "
+  //   "mpi_comm_size %d %d, nb_threads %d",
+  //   global_comm->global_rank,
+  //   global_comm->mpi_rank,
+  //   global_comm->unique_id,
+  //   global_comm->global_comm_size,
+  //   global_comm->mpi_comm_size,
+  //   global_comm->mpi_comm_size_actual,
+  //   global_comm->nb_threads);
   return backend_network->alltoallv(
     sendbuf, sendcounts, sdispls, recvbuf, recvcounts, rdispls, type, global_comm);
 }
@@ -105,16 +105,16 @@ int collAlltoall(
 int collAllgather(
   const void* sendbuf, void* recvbuf, int count, CollDataType type, CollComm global_comm)
 {
-  log_coll.debug(
-    "Allgather: global_rank %d, mpi_rank %d, unique_id %d, comm_size %d, "
-    "mpi_comm_size %d %d, nb_threads %d",
-    global_comm->global_rank,
-    global_comm->mpi_rank,
-    global_comm->unique_id,
-    global_comm->global_comm_size,
-    global_comm->mpi_comm_size,
-    global_comm->mpi_comm_size_actual,
-    global_comm->nb_threads);
+  // log_coll.debug(
+  //   "Allgather: global_rank %d, mpi_rank %d, unique_id %d, comm_size %d, "
+  //   "mpi_comm_size %d %d, nb_threads %d",
+  //   global_comm->global_rank,
+  //   global_comm->mpi_rank,
+  //   global_comm->unique_id,
+  //   global_comm->global_comm_size,
+  //   global_comm->mpi_comm_size,
+  //   global_comm->mpi_comm_size_actual,
+  //   global_comm->nb_threads);
   return backend_network->allgather(sendbuf, recvbuf, count, type, global_comm);
 }
 

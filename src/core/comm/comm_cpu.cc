@@ -54,6 +54,8 @@ static coll::CollComm init_cpucoll(const Legion::Task* task,
   assert(task->futures.size() == static_cast<size_t>(num_ranks + 1));
   const int unique_id = task->futures[0].get_result<int>();
 
+  coll::CollComm comm = NULL;
+#if 0
   coll::CollComm comm = (coll::CollComm)malloc(sizeof(coll::Coll_Comm));
 
 #ifdef LEGATE_USE_NETWORK
@@ -71,6 +73,7 @@ static coll::CollComm init_cpucoll(const Legion::Task* task,
   {
     coll::collCommCreate(comm, num_ranks, point, unique_id, nullptr);
   }
+#endif
 
   return comm;
 }
@@ -84,10 +87,13 @@ static void finalize_cpucoll(const Legion::Task* task,
 
   assert(task->futures.size() == 1);
   coll::CollComm comm = task->futures[0].get_result<coll::CollComm>();
+#if 0
   const int point     = task->index_point[0];
   assert(comm->global_rank == point);
   coll::collCommDestroy(comm);
+
   free(comm);
+#endif
   comm = nullptr;
 }
 
