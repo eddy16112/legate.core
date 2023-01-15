@@ -158,25 +158,26 @@ class CPUCommunicator(Communicator):
         print("vol:", volume)
         from .launcher import TaskLauncher as Task
 
-        cpucoll_uid = self._runtime.core_library.legate_cpucoll_initcomm()
-        buf = struct.pack("i", cpucoll_uid)
-        cpucoll_uid_f = self._runtime.create_future(buf, len(buf))
-        task = Task(self._context, self._init_cpucoll_mapping, tag=self._tag)
-        mapping_table_fm = task.execute(Rect([volume]))
+        # cpucoll_uid = self._runtime.core_library.legate_cpucoll_initcomm()
+        # buf = struct.pack("i", cpucoll_uid)
+        # cpucoll_uid_f = self._runtime.create_future(buf, len(buf))
+        # task = Task(self._context, self._init_cpucoll_mapping, tag=self._tag)
+        # mapping_table_fm = task.execute(Rect([volume]))
         task = Task(self._context, self._init_cpucoll, tag=self._tag)
-        task.add_future(cpucoll_uid_f)
-        for i in range(volume):
-            f = mapping_table_fm.get_future(Point([i]))
-            task.add_future(f)
+        # task.add_future(cpucoll_uid_f)
+        # for i in range(volume):
+        #     f = mapping_table_fm.get_future(Point([i]))
+        #     task.add_future(f)
         task.set_concurrent(True)
         handle = task.execute(Rect([volume]))
         return handle
 
     def _finalize(self, volume: int, handle: FutureMap) -> None:
-        from .launcher import TaskLauncher as Task
+        pass
+        # from .launcher import TaskLauncher as Task
 
-        task = Task(self._context, self._finalize_cpucoll, tag=self._tag)
-        task.add_future_map(handle)
-        task.set_concurrent(True)
-        task.execute(Rect([volume]))
-        self._runtime.issue_execution_fence()
+        # task = Task(self._context, self._finalize_cpucoll, tag=self._tag)
+        # task.add_future_map(handle)
+        # task.set_concurrent(True)
+        # task.execute(Rect([volume]))
+        # self._runtime.issue_execution_fence()

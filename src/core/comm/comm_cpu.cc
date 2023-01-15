@@ -51,8 +51,8 @@ static coll::CollComm init_cpucoll(const Legion::Task* task,
   const int point = task->index_point[0];
   int num_ranks   = task->index_domain.get_volume();
 
-  assert(task->futures.size() == static_cast<size_t>(num_ranks + 1));
-  const int unique_id = task->futures[0].get_result<int>();
+  // assert(task->futures.size() == static_cast<size_t>(num_ranks + 1));
+  // const int unique_id = task->futures[0].get_result<int>();
 
   coll::CollComm comm = NULL;
 #if 0

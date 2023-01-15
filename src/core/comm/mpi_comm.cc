@@ -105,10 +105,10 @@ MPINetwork::~MPINetwork()
     log_coll.fatal("MPI should not have been finalized");
     LEGATE_ABORT;
   }
-  if (self_init_mpi) {
+//  if (self_init_mpi) {
     MPI_Finalize();
     printf("finalize mpi\n");
-  }
+//  }
   BackendNetwork::coll_inited = false;
 }
 
